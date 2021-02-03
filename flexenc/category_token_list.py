@@ -11,6 +11,12 @@ class AbstractTokenList:
     def getToken(self, category_name : str, token_name :str) -> Token:
       pass
 
+    def encode_stream(self, generator):
+      result = []
+      for category, text in generator:
+        result.extend(self.encode(category, text))  
+      return result
+
 class CustomTokenList(AbstractTokenList):
   def __init__(self, token_names : list):
     self.start_token_index = 0
@@ -52,9 +58,9 @@ class CategoryTokenList(AbstractTokenList):
 
   def encode(self, category : str, text: str):
     if category in self.categories:
-      self.categories[category].encode(category, text)
+      return self.categories[category].encode(category, text)
     else:
-      raise "Unknown category"     
+      raise ValueError("Unknown category")     
 
   def getToken(self, category_name : str, token_name :str) -> Token:
     if category_name in self.categories:
