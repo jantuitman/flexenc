@@ -1,64 +1,24 @@
-from abc import ABC, abstractmethod
+from .abstract_token_list import AbstractTokenList;
 from .token import Token
- 
-class AbstractTokenList:
-    
-    @abstractmethod
-    def encode(self, category : str, text : str):
-      pass
-    
-    @abstractmethod
-    def getToken(self, category_name : str, token_name :str) -> Token:
-      pass
-
-    def encode_stream(self, generator):
-      result = []
-      for category, text in generator:
-        result.extend(self.encode(category, text))  
-      return result
-
-class CustomTokenList(AbstractTokenList):
-  def __init__(self, token_names : list):
-    self.start_token_index = 0
-    self.token_count = len(token_names)
-    self.token_names = token_names
-    self.encoder = lambda category, text, token_list: self.defaultEncode(category, text, token_list)
-    super().__init__()
-
-  def encode(self, category : str, text: str):
-    return self.encoder(category, text, self)   
-  
-  def getToken(self, category_name : str, token_name :str) -> Token:
-    if token_name in self.token_names:
-      index = self.token_names.index(token_name)
-      return Token(index + self.start_token_index, token_name, category_name)
-    else:
-      raise ValueError("Unknown token name")  
-
-  def defaultEncode(self, category, text, token_list):
-    if text in self.token_names:
-      token = self.getToken(category, text)
-      return [ token ]
-    else:
-      raise ValueError(f"Can't encode: {text}")  
-
-
+from collections import OrderedDict
 
 class CategoryTokenList(AbstractTokenList):
   def __init__(self):
     self.start_token_index = 0
-    self.token_count = 0
-    self.categories = {}
+    self.token_count = 1 # token 0 is reserved.
+    self.categories = OrderedDict()
+    self.insert_whitespace = False
     super().__init__()
 
   def addCategory(self, category_name :str,token_list : AbstractTokenList):    
-    token_list.start_token_index = self.token_count + 1
+    token_list.start_token_index = self.token_count
     self.token_count += token_list.token_count
     self.categories[category_name] = token_list
+    token_list.category_name = category_name
 
-  def encode(self, category : str, text: str):
+  def encode_for_category(self, category : str, text: str):
     if category in self.categories:
-      return self.categories[category].encode(category, text)
+      return self.categories[category].encode_for_category(category, text)
     else:
       raise ValueError("Unknown category")     
 
@@ -67,3 +27,32 @@ class CategoryTokenList(AbstractTokenList):
       return self.categories[category_name].getToken(category_name, token_name)
     else:
       raise ValueError("Unknown category")  
+
+  def getTokenById(self, id : int) -> Token:
+    for category_name, category in self.categories.items():
+      if category.start_token_index <= id and id < category.start_token_index + category.token_count:
+        return category.getTokenById(id)
+    raise ValueError("token id out of range")    
+
+  # this should return a string which has no whitespace on the left and the right side.
+  # but it will add whitespace between tokens if self.insert_whitespace = True
+  def decode_tokens(self, tokens : iter) -> str:  
+    result = []
+    temp_tokens = []
+    previous_cat = None
+    for token in tokens:
+      if token.category != previous_cat:
+        if len(temp_tokens) > 0:
+          s = self.categories[previous_cat].decode_tokens(temp_tokens)
+          temp_tokens  = [];
+          result.append(s)
+        previous_cat = token.category
+        temp_tokens.append(token)
+      else:
+        temp_tokens.append(token)
+    if len(temp_tokens) > 0:
+      s = self.categories[previous_cat].decode_tokens(temp_tokens)
+      result.append(s)
+    sep = " " if self.insert_whitespace else ""  
+    return sep.join(result)
+

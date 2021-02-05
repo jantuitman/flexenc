@@ -20,3 +20,4 @@ def test_iterate_parts():
   assert next(result) == ("numeric","123")
   with pytest.raises(StopIteration):
     next(result)
+
