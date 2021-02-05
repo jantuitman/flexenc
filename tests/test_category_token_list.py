@@ -1,4 +1,4 @@
-from flexenc import CategoryTokenList,CustomTokenList, Token
+from flexenc import CategoryTokenList,CustomTokenList, Token, tokens_to_int
 
 
 def test_tokencount():
@@ -29,11 +29,16 @@ def test_encode():
   assert [ Token(1,"a","category1") , 
     Token(6,"f","category2")] == token_list.encode(myStream())
 
+def test_tokens_to_int():  
+  assert [1,6] == list(tokens_to_int([ Token(1,"a","category1") , Token(6,"f","category2")]))  
+
 def test_getTokenById():
   token_list = CategoryTokenList()
   token_list.addCategory("category1", CustomTokenList(["a","b","c","d"]))
   token_list.addCategory("category2", CustomTokenList(["e","f","g","h"]))
   assert Token(8,"h", "category2") == token_list.getTokenById(8)
   assert Token(4,"d", "category1") == token_list.getTokenById(4) 
+
+
 
            

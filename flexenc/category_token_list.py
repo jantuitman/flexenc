@@ -2,6 +2,12 @@ from .abstract_token_list import AbstractTokenList;
 from .token import Token
 from collections import OrderedDict
 
+
+# global function with no file (yet).
+def tokens_to_int(tokens : list) -> iter:
+  return map(lambda x:x.token_index, tokens)
+
+
 class CategoryTokenList(AbstractTokenList):
   def __init__(self):
     self.start_token_index = 0
