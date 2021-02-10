@@ -7,5 +7,7 @@ from .drop_tokenizer import DropTokenizer
 from .reduce_whitespace_tokenizer import ReduceWhitespaceTokenizer
 from .letter_tokenizer import LetterTokenizer
 from .numeric_tokenizer import NumericTokenizer
+from .positional_numeric_tokenizer import PositionalNumericTokenizer
+from .fixed_numeric_tokenizer import FixedNumericTokenizer
 
 from .token import Token

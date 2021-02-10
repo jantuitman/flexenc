@@ -27,3 +27,4 @@ def test_just_a_sum():
   tokens = main.encode(iterate_parts("10 + 7 = 17",decision_table))
   text = main.decode_tokens(tokens)
   assert "10 + 7 = 17" == text
+ 
